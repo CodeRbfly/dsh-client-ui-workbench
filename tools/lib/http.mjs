@@ -97,6 +97,31 @@ export function findBootEntry(html, packageName) {
 }
 
 /**
+ * 把启动图里的 bundle 地址解析成绝对 URL。
+ *
+ * 为什么需要它：启动图里 `url` 的形状随 DSH 版本变 ——
+ *   0.1.5：绝对路径 `/plugins/??…`（页面用 `<base href="/">`）；
+ *   0.2.0：相对路径 `plugins/??…`（页面用 `<base href="./">`）。
+ * 直接 `base + url` 拼接，后者会拼出 `http://127.0.0.1:3080plugins/…` ——
+ * 非法 URL，`fetch` 直接抛，然后被报成「宿主不可达 / 鉴权未通过」。
+ * 真实踩过：DSH 0.2.0 上 `install.mjs` 第 4 步、`probe.mjs`、`check-bundle.mjs`
+ * 一起假报 FAIL，而同一个地址用 `new URL(url, base)` 取到的是 HTTP 200。
+ *
+ * @param {string} baseUrl 宿主根地址（带不带尾斜杠都行）
+ * @param {string | null | undefined} url 启动图里的 url
+ * @returns {string | null} 绝对 URL；url 为空或解析失败时返回 null
+ */
+export function resolveBundleUrl(baseUrl, url) {
+  if (url === null || url === undefined || url === '') return null;
+  const base = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  try {
+    return new URL(url, base).href;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * 走一遍鉴权链路后 POST 一个 JSON 请求。
  *
  * `/api` 下的路由受 Host/Origin 围栏 + 浏览器登录态保护。这里是同源服务端脚本，

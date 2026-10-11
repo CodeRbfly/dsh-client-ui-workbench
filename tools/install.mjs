@@ -25,7 +25,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
-import { createCookieJar, fetchFollowingRedirects, fetchIndexHtml } from './lib/http.mjs';
+import { createCookieJar, fetchFollowingRedirects, fetchIndexHtml, resolveBundleUrl } from './lib/http.mjs';
 import { resolveHome } from './lib/home-detect.mjs';
 import { readTar, stripArchiveRoot } from './lib/tar.mjs';
 
@@ -402,8 +402,9 @@ if (options.skipVerify) {
     console.log(`      PASS  '${packageName}' 已在 window.__DSH_BOOT__ 启动图中`);
     const match = html.match(new RegExp(`"id":"${packageName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}","url":"([^"]+)"`));
     if (match) {
-      console.log(`      bundle url: ${match[1]}`);
-      const probe = await fetchFollowingRedirects(options.webUrl.replace(/\/$/, '') + match[1], cookieJar);
+      const bundleUrl = resolveBundleUrl(options.webUrl, match[1]);
+      console.log(`      bundle url: ${bundleUrl ?? match[1]}`);
+      const probe = bundleUrl === null ? null : await fetchFollowingRedirects(bundleUrl, cookieJar);
       if (probe === null) {
         console.log('      FAIL  bundle 取不到（宿主不可达或鉴权未通过）');
       } else {

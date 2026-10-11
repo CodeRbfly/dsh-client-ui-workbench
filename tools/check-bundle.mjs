@@ -19,7 +19,7 @@
  *
  * 只依赖 Node 内置模块与 `tools/lib/http.mjs`（与 probe / install / rpc 共用一份实现）。
  */
-import { createCookieJar, fetchFollowingRedirects, fetchIndexHtml } from './lib/http.mjs';
+import { createCookieJar, fetchFollowingRedirects, fetchIndexHtml, resolveBundleUrl } from './lib/http.mjs';
 
 /**
  * 默认要确认在线上的标志位：它们分别代表"两处分块下拉""删除的二次确认""空占位项"。
@@ -77,8 +77,10 @@ async function inspect() {
   const escaped = options.entry.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const found = new RegExp(`"id":"${escaped}","url":"([^"]+)"`).exec(index.html);
   if (found === null) return { hard: `'${options.entry}' 不在 window.__DSH_BOOT__ 启动图里` };
-  const bundleUrl = found[1].replace(/&amp;/g, '&');
-  const response = await fetchFollowingRedirects(base + bundleUrl, createCookieJar());
+  const rawUrl = found[1].replace(/&amp;/g, '&');
+  const bundleUrl = resolveBundleUrl(base, rawUrl);
+  if (bundleUrl === null) return { hard: `bundle url 解析不出来：${rawUrl}` };
+  const response = await fetchFollowingRedirects(bundleUrl, createCookieJar());
   if (response === null || !response.ok) {
     return { hard: `bundle 取不到（HTTP ${response === null ? '?' : response.status}）` };
   }

@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed — Phase 1.43：桌面版（内置 DSH 0.2.0）点开工作台整页空白
+### Fixed — Phase 1.43：DSH 0.2.0（桌面版 / 升级后的网页版）点开工作台整页空白
 
 **症状**：同一份 bundle，网页版（DSH `0.1.5-rc.1`）一切正常，桌面版（setup.exe 内置
 DSH `0.2.0-rc.2`）点开「需求执行工作台」**整页什么都没有**：页签在、能点，应用其余部分
@@ -22,6 +22,12 @@ DSH `0.2.0-rc.2`）点开「需求执行工作台」**整页什么都没有**：
 都认不出按 0。浏览器半边改完**重启桌面版**即可生效，不需要重装（桌面版 profile 是
 `link:` 到工作区的）。
 
+**两套 profile 要分别生效**：桌面版 profile 是 `link:` 到工作区的，改完源码重启应用即可；
+网页版 profile 加载的是 `$DSH_HOME/profiles/node_modules/<包名>` 里的**部署副本**，
+必须 `node tools/install.mjs` 才会换（宿主侧的 HMR 会在秒级内重新合成，`rev` 会变）。
+真实踩过：只改了工作区、没部署，网页版一直跑着 9/20 的旧副本；等网页版也被升到
+`0.2.0`，同一片空白立刻复现 —— 症状与"换了台机器"完全一样。
+
 **为什么测试没拦住**：`tools/verify.mjs` 的 `sessionSnapshot` 只模拟了 `0.1.5` 的形状
 （`{ running, openState, queue }`），而生产上会出现 `0.2.0` 的形状。现在同一份视图渲染两遍，
 第二遍用「没有 `queue`、只有 `pendingSubmissions`」的快照，并要求计数**真的来自新字段**
@@ -31,6 +37,15 @@ DSH `0.2.0-rc.2`）点开「需求执行工作台」**整页什么都没有**：
 **留下的通用教训**：宿主会话/列表快照属于**跨版本契约**，只读字段也不能直接点取 ——
 要么两种形状都认，要么取值前判空。同类字段（`running` / `openState` / `sessions.scope(id)` /
 `conversation.send(text)`）已逐一对过 `0.2.0`，都还在。
+
+**工具侧的同源问题（一并修）**：`0.2.0` 起启动图里的 bundle 地址也从绝对路径
+（`/plugins/??…`，页面 `<base href="/">`）变成相对路径（`plugins/??…`，页面
+`<base href="./">`）。`probe.mjs` / `check-bundle.mjs` / `install.mjs` 原来都是
+`base + url` 直接拼接，于是拼出 `http://127.0.0.1:3080plugins/…` 这种非法 URL，
+`fetch` 抛错后又被报成「宿主不可达 / 鉴权未通过」—— 安装器第 4 步因此在 `0.2.0` 上
+假报过 `FAIL`，而同一个地址用 `new URL(url, base)` 取到的是 HTTP 200。
+现在三处统一走 `lib/http.mjs` 的 `resolveBundleUrl()`，自检里用真值钉住
+绝对 / 相对 / base 带尾斜杠 / 空值四种输入，并断言这三个脚本都在用它。
 
 ### Added — Phase 1.42：测试页每条用例也能【执行】，跑完把结果落回文件
 

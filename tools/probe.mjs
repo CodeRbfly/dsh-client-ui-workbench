@@ -31,6 +31,7 @@ import {
   fetchFollowingRedirects,
   fetchIndexHtml,
   findBootEntry,
+  resolveBundleUrl,
 } from './lib/http.mjs';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -90,7 +91,8 @@ if (present) {
   console.log(`  命中：'${options.packageName}' 已在启动图中`);
   if (url !== null) {
     console.log(`  bundle url: ${url}`);
-    const probe = await fetchFollowingRedirects(options.webUrl.replace(/\/$/, '') + url, createCookieJar());
+    const bundleUrl = resolveBundleUrl(options.webUrl, url);
+    const probe = bundleUrl === null ? null : await fetchFollowingRedirects(bundleUrl, createCookieJar());
     if (probe === null) {
       console.log('  bundle：取不到（鉴权未通过或连接中断）');
       bundleOk = false;

@@ -2066,6 +2066,30 @@ console.log('\n[24] 诊断脚本的四条结论');
       /判定：宿主半边\*\*已经加载\*\*/.test(probeText) && /doctor\.mjs/.test(probeText));
     check('probe.mjs 会指出 404 = 路由没注册（区别于「重启一下就好」）',
       probeText.includes('ping.status === 404'));
+
+    // 启动图里的 bundle 地址形状随 DSH 版本变：0.1.5 是绝对路径 `/plugins/…`，
+    // 0.2.0 是相对路径 `plugins/…`（页面用 `<base href="./">`）。直接 `base + url`
+    // 拼接会拼出 `http://127.0.0.1:3080plugins/…` —— 非法 URL，fetch 直接抛，
+    // 再被报成「宿主不可达 / 鉴权未通过」。0.2.0 上安装器第 4 步真的这么假报过 FAIL，
+    // 而同一个地址用 `new URL(url, base)` 取到的是 HTTP 200。这里用真值钉住两种形状。
+    const { resolveBundleUrl } = await import(
+      pathToFileURL(join(packageRoot, 'tools', 'lib', 'http.mjs')).href
+    );
+    const probeHost = 'http://127.0.0.1:3080';
+    const comboPath = 'plugins/??a/client.js&rev=abc';
+    check('启动图 bundle 地址：0.1.5 的绝对路径解析正确',
+      resolveBundleUrl(probeHost, `/${comboPath}`) === `${probeHost}/${comboPath}`,
+      String(resolveBundleUrl(probeHost, `/${comboPath}`)));
+    check('启动图 bundle 地址：0.2.0 的相对路径也解析正确（不许拼成 hostplugins/…）',
+      resolveBundleUrl(probeHost, comboPath) === `${probeHost}/${comboPath}`,
+      String(resolveBundleUrl(probeHost, comboPath)));
+    check('启动图 bundle 地址：base 带尾斜杠 / 空值都不炸',
+      resolveBundleUrl(`${probeHost}/`, comboPath) === `${probeHost}/${comboPath}`
+      && resolveBundleUrl(probeHost, null) === null
+      && resolveBundleUrl(probeHost, '') === null);
+    check('probe / check-bundle / install 都改用这个解析函数（不再各自拼字符串）',
+      ['probe.mjs', 'check-bundle.mjs', 'install.mjs']
+        .every((name) => readFileSync(join(packageRoot, 'tools', name), 'utf8').includes('resolveBundleUrl')));
   }
 }
 
