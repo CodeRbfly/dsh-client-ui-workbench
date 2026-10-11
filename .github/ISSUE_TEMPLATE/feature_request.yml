@@ -1,0 +1,72 @@
+name: Feature request
+description: Propose a concrete feature for one of the five pipeline stages, or a change to the plugin itself.
+title: '[Feature] '
+labels: ['enhancement', 'needs-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The five pipeline stages (需求 → 方案 → 开发 → 测试 → 提版) are intentionally
+        empty placeholders. Describing **which stage** a feature belongs to, and
+        **what data it reads or writes**, makes a proposal actionable.
+
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Pipeline stage
+      description: Which stage does this belong to?
+      options:
+        - 需求 (Requirement)
+        - 方案 (Design)
+        - 开发 (Develop)
+        - 测试 (Test)
+        - 提版 (Release)
+        - Cross-cutting / plugin infrastructure
+        - Not stage-specific
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What is hard or impossible today? Describe the workflow, not the implementation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour
+      description: What should the workbench show or do?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: data-source
+    attributes:
+      label: Where would the data come from?
+      description: This determines the implementation cost — see the "Extending" section of the README.
+      options:
+        - Component-local state only (no persistence)
+        - Per-session persisted state (a `store:` on the slot registration)
+        - Existing session data (useSession / useProjection / useConversation)
+        - A new host-side capability (a custom tool, an HTTP route, or a cordis service)
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to open a pull request for this.
+          required: false

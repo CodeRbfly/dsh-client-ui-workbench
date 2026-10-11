@@ -1,0 +1,13 @@
+# 本包自带的 cordis 补丁层。
+#
+# 仅当把本包当作「profile bundle」安装时才会被读到
+# （即 $DSH_HOME/profiles/web/package.json 的 dsh.profile.bundles 里列了本包）。
+#
+# 默认推荐路径（Option A，见 README）是把行直接写进
+# $DSH_HOME/profiles/web/cordis.patch.yml，此时本文件不参与合成。
+#
+# 这是一条普通宿主行：本插件只往浏览器 slot 注册表贡献 UI，
+# 不发布任何 cordis 服务，因此不需要 `isolate` realm。
+- insert:
+    - id: client-ui-workbench
+      name: 'dsh-client-ui-workbench'

@@ -1,0 +1,89 @@
+name: CI
+
+# This project has zero runtime and zero development dependencies, so CI needs
+# no install step at all — no `npm ci`, no lockfile, no registry access. That
+# is also what makes the offline install path trustworthy: the same scripts run
+# here and on an air-gapped machine.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: ['20', '22']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Confirm zero dependencies
+        shell: bash
+        run: |
+          node -e "
+            const pkg = require('./package.json');
+            const groups = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'];
+            const offenders = groups.filter((g) => Object.keys(pkg[g] ?? {}).length > 0);
+            if (offenders.length > 0) {
+              console.error('declared dependencies found in: ' + offenders.join(', '));
+              console.error('this project must stay dependency-free so it installs offline');
+              process.exit(1);
+            }
+            console.log('OK: no declared dependencies');
+          "
+
+      - name: Contract verification
+        run: npm run verify
+
+      - name: Offline install end-to-end self-test
+        run: npm run selftest
+
+  bundle:
+    name: offline artifact
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build the offline tarball
+        run: npm run pack:offline
+
+      - name: Verify the checksum file
+        shell: bash
+        run: |
+          cd dist
+          sha256sum --check SHA256SUMS.txt
+
+      - name: Upload the offline tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-tarball
+          path: |
+            dist/*.tgz
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14

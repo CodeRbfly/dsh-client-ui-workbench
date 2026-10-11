@@ -1,0 +1,65 @@
+name: Release
+
+# Publishes the offline tarball as a GitHub Release asset, which is the
+# distribution channel for air-gapped installs: download the .tgz from the
+# Release page, carry it across, and run tools/install.mjs against it.
+#
+# Uses the preinstalled `gh` CLI rather than a third-party release action, so
+# the workflow introduces no external action dependency beyond first-party
+# actions/* ones.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify before publishing
+        run: npm test
+
+      - name: Build the offline tarball
+        run: npm run pack:offline
+
+      - name: Verify the checksum file
+        shell: bash
+        run: |
+          cd dist
+          sha256sum --check SHA256SUMS.txt
+
+      - name: Confirm the tag matches package.json
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "tag v$tag does not match package.json version $pkg" >&2
+            exit 1
+          fi
+          echo "tag v$tag matches package.json"
+
+      - name: Publish the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            dist/*.tgz dist/SHA256SUMS.txt \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes

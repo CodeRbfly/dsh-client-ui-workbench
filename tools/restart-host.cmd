@@ -1,0 +1,2 @@
+@echo off
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "E:\work\deepseek-harness\workspace\dsh-client-ui-workbench\tools\restart-host.ps1" > "E:\work\deepseek-harness\workspace\_restart-task.log" 2>&1

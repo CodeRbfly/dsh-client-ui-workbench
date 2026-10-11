@@ -1,0 +1,129 @@
+name: Bug report
+description: Something is broken — the tab is missing, the GUI white-screens, or the installer fails.
+title: '[Bug] '
+labels: ['bug', 'needs-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. This plugin fails loudly and in a small number of
+        known ways, so the diagnostics below usually identify the cause outright.
+
+        Before filing, please run `npm run verify` and paste the result — it
+        catches most load-time problems without needing a browser.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I ran `npm run verify` and it passed (or I pasted its output below).
+          required: true
+        - label: I searched existing issues for the same error text.
+          required: true
+
+  - type: dropdown
+    id: symptom
+    attributes:
+      label: Symptom
+      description: What actually happens?
+      options:
+        - The 需求执行工作台 tab does not appear at all
+        - The tab appears but renders nothing / renders wrong
+        - The whole DSH web GUI white-screens on load
+        - `dsh web` exits immediately at startup
+        - The installer (tools/install.mjs) fails
+        - The offline tarball cannot be unpacked or installed
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Include the exact error text if there is one. Exact strings matter — they map to specific causes.
+      placeholder: |
+        I refreshed http://127.0.0.1:3080 and the header still shows only 对话 and 轨迹.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+
+  - type: input
+    id: dsh-version
+    attributes:
+      label: DSH version
+      description: Output of `dsh --version`.
+      placeholder: 0.1.5-rc.1
+    validations:
+      required: true
+
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version or commit
+      description: The release tag you downloaded, or the commit SHA you built from.
+      placeholder: v0.1.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: How did you install it?
+      options:
+        - tools/install.mjs from a checkout
+        - tools/install.mjs --tarball from a GitHub Release
+        - .\\deploy.ps1
+        - npm install -g of the tarball
+        - Other / manual copy
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: OS and Node version
+      description: '`node --version` plus your OS. Windows/macOS/Linux and the version.'
+      placeholder: Windows 10 22H2, node v24.21.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: verify-output
+    attributes:
+      label: '`npm run verify` output'
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: host-log
+    attributes:
+      label: DSH web host log
+      description: |
+        Only if the GUI white-screened or `dsh web` exited. The relevant lines are
+        the ones mentioning `client-modules`, `web boot`, or `plugin tree failed to load`.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: boot-graph
+    attributes:
+      label: Boot graph entry
+      description: |
+        Output of the following. This shows whether the host ever composed the
+        plugin into the browser boot graph.
+        ```powershell
+        (Invoke-WebRequest http://127.0.0.1:3080/ -UseBasicParsing).Content -match '"id":"dsh-client-ui-workbench"'
+        ```
+      render: shell
+    validations:
+      required: false

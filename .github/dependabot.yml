@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # The project itself declares no package dependencies, so only the GitHub
+  # Actions used by the workflows need watching.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: 'ci'
+    labels:
+      - dependencies

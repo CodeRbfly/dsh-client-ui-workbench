@@ -1,0 +1,73 @@
+{
+  "name": "dsh-client-ui-workbench",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "DeepSeek Harness web client plugin: a 需求执行工作台 (Requirements Execution Workbench) tab beside 对话轨迹, with a Requirement → Design → Develop → Test → Release pipeline scaffold. Zero runtime dependencies, hand-authored browser bundle, installable fully offline.",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-api-session-controller",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-session"
+      ]
+    }
+  },
+  "files": [
+    "index.js",
+    "lib/client.js",
+    "skills",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md",
+    "README.i18n.yaml",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node tools/verify.mjs && node tools/selftest.mjs",
+    "verify": "node tools/verify.mjs",
+    "selftest": "node tools/selftest.mjs",
+    "probe": "node tools/probe.mjs",
+    "doctor": "node tools/doctor.mjs",
+    "pack:offline": "node tools/pack-offline.mjs",
+    "install:web": "node tools/install.mjs",
+    "uninstall:web": "node tools/uninstall.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OWNER/dsh-client-ui-workbench.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OWNER/dsh-client-ui-workbench/issues"
+  },
+  "homepage": "https://github.com/OWNER/dsh-client-ui-workbench#readme",
+  "author": "dsh-client-ui-workbench contributors",
+  "license": "MIT",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "client-plugin",
+    "web-ui",
+    "workbench",
+    "requirement-pipeline",
+    "offline-install"
+  ]
+}

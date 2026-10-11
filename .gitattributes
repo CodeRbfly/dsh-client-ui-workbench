@@ -1,0 +1,24 @@
+# The repo's canonical text form is LF, enforced at checkout too: no smudge
+# boundary between working tree and repo, so any byte-level comparison sees one
+# form on every host. Mirrors the DeepSeek Harness monorepo convention.
+* text=auto eol=lf
+
+# Windows command scripts require CRLF in the working tree for cmd.exe.
+*.cmd text eol=crlf
+
+# Binary artifacts.
+*.tgz binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# Release artifacts are generated, never hand-edited.
+dist/* linguist-generated=true
+
+# Language statistics: the browser bundle is a build-like artifact, and the
+# Chinese README would otherwise roughly double the reported prose.
+lib/client.js linguist-generated=true

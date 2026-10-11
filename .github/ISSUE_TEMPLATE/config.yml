@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: DeepSeek Harness documentation
+    url: https://github.com/deepseek-ai/deepseek-harness
+    about: Questions about DSH itself, the plugin system, or the slot API belong upstream.
+  - name: Security vulnerability
+    url: https://github.com/OWNER/dsh-client-ui-workbench/security/advisories/new
+    about: Please report security issues privately — see SECURITY.md. Do not open a public issue.

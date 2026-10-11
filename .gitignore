@@ -1,0 +1,19 @@
+# Build output: the offline tarball is published as a GitHub Release asset,
+# not committed, so it is rebuilt from source on every release.
+dist/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Local installer backups (tools/install.mjs writes these next to the patch
+# layer, but a stray copy next to the repo should never be committed).
+*.bak
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

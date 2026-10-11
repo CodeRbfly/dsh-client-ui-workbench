@@ -1,0 +1,11 @@
+# Bilingual-pair consistency record: the git blob hash of each side as of the
+# last confirmed-consistent state. Both languages carry equal authority; after
+# editing either side, bring the other along and re-record with:
+#
+#   node -e "const{execSync}=require('node:child_process');for(const f of ['README.md','README.zh.md'])console.log(f+': '+execSync('git hash-object '+f,{encoding:'utf8'}).trim())"
+#
+# Format and intent mirror the DeepSeek Harness monorepo convention
+# (docs/i18n/README.md): the hashes are a tripwire for "one side moved and the
+# other did not", not a build input.
+README.md: 5a3bf7f52bbc5d1f6a464b59757a9ba34412e641
+README.zh.md: 1ad8e8effe3d4d872a09db8f4ebf6873dea647b8
